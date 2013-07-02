@@ -42,8 +42,8 @@
       if (baseUrlParts.anchor === '') {
         baseUrlParts.source = baseUrlParts.source.replace('#', '');
       }
-      var baseUrl = baseUrlParts.source.replace('?' + baseUrlParts.query, ''); 
-      url = baseUrl;
+      //var baseUrl = baseUrlParts.source.replace('?' + baseUrlParts.query, '');
+      url = baseUrlParts.source;	// source with query string
     }
     return url;
   }
