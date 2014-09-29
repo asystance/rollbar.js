@@ -1,7 +1,5 @@
-/*jslint continue: true, nomen: true, plusplus: true, regexp: true, vars: true, white: true, passfail: false, indent: 2 */
+/*jslint continue: true, nomen: true, plusplus: true, regexp: true, vars: true, white: true, passfail: false */
 (function(window, document) {
-  'use strict';
-
   var parseUriOptions = {
     strictMode: false,
     key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
@@ -42,8 +40,8 @@
       if (baseUrlParts.anchor === '') {
         baseUrlParts.source = baseUrlParts.source.replace('#', '');
       }
-      //var baseUrl = baseUrlParts.source.replace('?' + baseUrlParts.query, '');
-      url = baseUrlParts.source;	// source with query string
+      var baseUrl = baseUrlParts.source.replace('?' + baseUrlParts.query, ''); 
+      url = baseUrl;
     }
     return url;
   }
@@ -90,8 +88,8 @@
       }
 
       if (chunks.length > 2) {
-        fn = chunks[0];
-        filename = chunks.slice(1).join(' ');
+        fn = chunks.slice(0, -1).join(' ');
+        filename = chunks.slice(-1)[0];
         lineno = 0;
       } else if (chunks.length === 2) {
         fn = chunks[0];
@@ -159,7 +157,7 @@
         var frame = {filename: filename, lineno: lineno, method: fn};
         
         // Firefox gives a column number for the first frame
-        if (i == 0 && e.columnNumber) {
+        if (i === 0 && e.columnNumber) {
           // Add 1 to represent a column number starting from 1 since Firefox
           // provides a 0-based column number
           frame.colno = e.columnNumber + 1;
@@ -185,36 +183,36 @@
 
     Date.prototype.toRollbarJSON = function (key) {
 
-        return isFinite(this.valueOf())
-            ? this.getUTCFullYear()     + '-' +
-                f(this.getUTCMonth() + 1) + '-' +
-                f(this.getUTCDate())      + 'T' +
-                f(this.getUTCHours())     + ':' +
-                f(this.getUTCMinutes())   + ':' +
-                f(this.getUTCSeconds())   + 'Z'
-            : null;
+      return isFinite(this.valueOf()) ?
+              this.getUTCFullYear()     + '-' +
+              f(this.getUTCMonth() + 1) + '-' +
+              f(this.getUTCDate())      + 'T' +
+              f(this.getUTCHours())     + ':' +
+              f(this.getUTCMinutes())   + ':' +
+              f(this.getUTCSeconds())   + 'Z'
+          : null;
     };
 
     String.prototype.toRollbarJSON      =
-        Number.prototype.toRollbarJSON  =
-        Boolean.prototype.toRollbarJSON = function (key) {
-          return this.valueOf();
-        };
+      Number.prototype.toRollbarJSON  =
+      Boolean.prototype.toRollbarJSON = function (key) {
+        return this.valueOf();
+      };
 
     var cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
-        escapable = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
-        gap,
-        indent,
-        meta = {    // table of character substitutions
-            '\b': '\\b',
-            '\t': '\\t',
-            '\n': '\\n',
-            '\f': '\\f',
-            '\r': '\\r',
-            '"' : '\\"',
-            '\\': '\\\\'
-        },
-        rep;
+      escapable = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
+      gap,
+      indent,
+      meta = {    // table of character substitutions
+        '\b': '\\b',
+        '\t': '\\t',
+        '\n': '\\n',
+        '\f': '\\f',
+        '\r': '\\r',
+        '"' : '\\"',
+        '\\': '\\\\'
+      },
+      rep;
 
 
     function quote(string) {
@@ -222,9 +220,8 @@
       escapable.lastIndex = 0;
       return escapable.test(string) ? '"' + string.replace(escapable, function (a) {
         var c = meta[a];
-        return typeof c === 'string'
-            ? c
-            : '\\u' + ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
+        return typeof c === 'string' ?
+            c : '\\u' + ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
       }) + '"' : '"' + string + '"';
     }
 
@@ -259,7 +256,7 @@
         case 'object':
 
           if (!value) {
-              return 'null';
+            return 'null';
           }
 
           gap += indent;
@@ -269,14 +266,14 @@
 
             length = value.length;
             for (i = 0; i < length; i += 1) {
-                partial[i] = str(i, value) || 'null';
+              partial[i] = str(i, value) || 'null';
             }
 
-            v = partial.length === 0
-                ? '[]'
-                : gap
-                ? '[\n' + gap + partial.join(',\n' + gap) + '\n' + mind + ']'
-                : '[' + partial.join(',') + ']';
+            v = partial.length === 0 ?
+              '[]'
+              : gap ?
+              '[\n' + gap + partial.join(',\n' + gap) + '\n' + mind + ']'
+              : '[' + partial.join(',') + ']';
             gap = mind;
             return v;
           }
@@ -298,17 +295,17 @@
               if (Object.prototype.hasOwnProperty.call(value, k)) {
                 v = str(k, value);
                 if (v) {
-                    partial.push(quote(k) + (gap ? ': ' : ':') + v);
+                  partial.push(quote(k) + (gap ? ': ' : ':') + v);
                 }
               }
             }
           }
 
-          v = partial.length === 0
-              ? '{}'
-              : gap
-              ? '{\n' + gap + partial.join(',\n' + gap) + '\n' + mind + '}'
-              : '{' + partial.join(',') + '}';
+          v = partial.length === 0 ?
+            '{}'
+            : gap ?
+            '{\n' + gap + partial.join(',\n' + gap) + '\n' + mind + '}'
+            : '{' + partial.join(',') + '}';
           gap = mind;
           return v;
       }
@@ -341,7 +338,7 @@
 
   /*** END json2.js ***/
 
-  var ERR_CLASS_REGEXP = new RegExp('^(([a-zA-Z0-9-_$ ]*): *)?(Uncaught )?([a-zA-Z0-9-_$ ]*): ');
+  var ERR_CLASS_REGEXP = new RegExp('^(([a-zA-Z0-9-_$ \\.]*): *)?(Uncaught )?([a-zA-Z0-9-_$ \\.]*): *');
 
   var RollbarNotifier = {
     accessToken: null,
@@ -357,13 +354,29 @@
     
     initialize: function(accessToken, params, environment, logger) {
       this.accessToken = accessToken;
-      this.environment = environment || params['server.environment'];
+      this.environment = environment || params['server.environment'] || 'unspecified';
       this.defaultLevel = params.level || this.defaultLevel;
-      this.itemsPerMinute = (params.itemsPerMinute || params.itemsPerMinute == 0 ? params.itemsPerMinute : this.itemsPerMinute);
-      this.extraParams = params;
+      this.itemsPerMinute = (params.itemsPerMinute || params.itemsPerMinute === 0 ? params.itemsPerMinute : this.itemsPerMinute);
+      this.extraParams = {};
       this.startTime = (new Date()).getTime();
       this.logger = logger || (window.console ? function(args) { window.console.log(args); } : function(){});
       this.checkIgnore = params.checkIgnore || this.checkIgnore;
+      this.scrubFields = params.scrubFields || ['passwd', 'password', 'secret', 'confirm_password', 'password_confirmation'];
+      this.scrubQueryParamRes = [];
+      this.scrubParamRes = [];
+
+      var numFields = this.scrubFields.length;
+      var paramPat;
+      var i;
+
+      // Build two lists of regular expression objects. The first will be used to see
+      // if the key's name matches something that we want to scrub. The second is for
+      // scrubbing things that look like query params.
+      for (i = 0; i < numFields; ++i) {
+        paramPat = '\\[?(%5[bB])?' + this.scrubFields[i] + '\\[?(%5[bB])?\\]?(%5[dD])?';
+        this.scrubParamRes.push(new RegExp(paramPat, 'i'));
+        this.scrubQueryParamRes.push(new RegExp('(' + paramPat + '=)([^&\\n]+)', 'igm'));
+      }
       
       if (params.endpoint) {
         this.endpoint = params.endpoint;
@@ -379,12 +392,53 @@
 
       var navPlugins = (window.navigator.plugins || []);
       var cur;
-      var i;
       var numPlugins = navPlugins.length;
       for (i = 0; i < numPlugins; ++i) {
         cur = navPlugins[i];
         this.browserPlugins.push({name: cur.name, description: cur.description});
       }
+      
+      // merge in user-supplied params
+      var k;
+      for (k in params) {
+        if (params.hasOwnProperty(k)) {
+          this.parseParam(k, params[k]);
+        }
+      }
+    },
+    
+    parseParam: function(key, value) {
+      var path = key.split(".");
+      
+      // traverse the path to second-to-last elem
+      var target = this.extraParams;
+      var i;
+      for (i = 0; i < path.length - 1; i++) {
+        if (!target.hasOwnProperty(path[i])) {
+          target[path[i]] = {};
+        }
+        target = target[path[i]];
+      }
+
+      // now save
+      target[path[path.length - 1]] = value;
+    },
+    
+    mergeObjects: function(obj1, obj2) {
+      var k;
+      for (k in obj2) {
+        if (obj2[k].constructor == Object) {
+          if (!obj1.hasOwnProperty(k)) {
+            obj1[k] = obj2[k];
+          } else {
+            obj1[k] = RollbarNotifier.mergeObjects(obj1[k], obj2[k]);
+          }
+        } else {
+          obj1[k] = obj2[k];
+        }
+      }
+      
+      return obj1;
     },
 
     XMLHttpFactories: [
@@ -411,7 +465,12 @@
     },
     
     push: function(args, callback) {
-      if (args instanceof Error) {
+      if (typeof args === 'object' && args._rollbarParams) {
+        var k;
+        for (k in args._rollbarParams) {
+          this.parseParam(k, args._rollbarParams[k]);
+        }
+      } else if (args instanceof Error) {
         this.handleError(args, callback);
       } else if (typeof args == 'object' && 
         !args.hasOwnProperty('msg') &&
@@ -420,11 +479,11 @@
         this.handleUncaughtError(args[0], args[1], args[2]);
       } else if (typeof args == 'object' &&
         args.hasOwnProperty("_t") &&
-        args['_t'] === 'uncaught') {
-        this.handleUncaughtError(args.e, args.u, args.l);
+        args._t === 'uncaught') {
+        this.handleUncaughtError(args.e, args.u, args.l, args.c, args.err);
       } else if (typeof args == 'object' &&
         args.hasOwnProperty("_t") &&
-        args['_t'] === 'trace') {
+        args._t === 'trace') {
         this.handleErrorTrace(args, callback);
       } else if (typeof args == 'object') {
         this.handleMessage(args, callback);
@@ -475,20 +534,39 @@
       this.handleEvents();
     },
     
-    handleUncaughtError: function(errMsg, url, lineNo) {
+    handleUncaughtError: function(errMsg, url, lineNo, colNo, error) {
+
       errMsg = errMsg || 'uncaught exception';
       url = url || '(unknown)';
       lineNo = lineNo || 0;
 
       if (this.checkIgnore !== null) {
         try {
-          if (this.checkIgnore(errMsg, url, lineNo) === true) {
+          if (this.checkIgnore(errMsg, url, lineNo, colNo, error) === true) {
             return;
           }
         } catch (e) {
           this.logger('Exception during check ignore: ' + e);
         }
       }
+
+      // Make sure this is a valid uncaught error.
+      // NOTE(cory): sometimes users will trigger an "error" event
+      // on the window object directly which will result in errMsg
+      // being an Object instead of a string.
+      //
+      if (url && url.hasOwnProperty('stack')) {
+        // If this is not actually an uncaught error, we'll have a
+        // valid stack trace so let's _rollbar.push() the error.
+        this.push(url);
+        return;
+      } else if (error && error.hasOwnProperty('stack')) {
+        // Newer versions of browsers are sending through the column number
+        // and the error.
+        this.push(error);
+        return;
+      }
+
       
       var baseUrl = sanitizeUrl(url);
       var frames = [{filename: baseUrl, lineno: parseInt(lineNo, 10) || null}];
@@ -558,7 +636,20 @@
         return;
       }
 
-      this._pushTrace(obj.trace, callback);
+      var item = {body: {trace: obj.trace}};
+      if (callback) {
+        item.callback = callback;
+      }
+
+      // merge other props as top-level
+      for (var k in obj) {
+        if (k !== 'trace' && k !== '_t') {
+          item[k] = obj[k];
+        }
+      }
+
+      this.items.push(item);
+      this.handleEvents();
     },
 
     /*
@@ -581,6 +672,22 @@
       this.handler = setTimeout(this.asyncHandler, 200);
     },
     
+    internalCheckIgnore: function(item) {
+      var plugins = null;
+      try {
+        plugins = RollbarNotifier.extraParams.notifier.plugins;
+      } catch (e) {
+        // pass
+      }
+      
+      if (plugins && plugins.jquery && plugins.jquery.ignoreAjaxErrors &&
+          item.body.message && item.body.message.jquery_ajax_error) {
+        return true;
+      }
+      
+      return false;
+    },
+    
     asyncHandler: function() {
       var item;
       var payload;
@@ -589,8 +696,21 @@
       try {
         item = RollbarNotifier.items.shift();
         while (item) {
-          payload = buildPayload(item);
-          RollbarNotifier.postItem(payload, item.callback);
+          if (!RollbarNotifier.internalCheckIgnore(item)) {
+            var uuid = RollbarNotifier.uuid4();
+            var origCallback = item.callback;
+            var wrappedCallback;
+
+            if (origCallback) {
+              wrappedCallback = function(err) {
+                return origCallback(err, uuid);
+              };
+            }
+
+            item.uuid = uuid;
+            payload = buildPayload(item);
+            RollbarNotifier.postItem(payload, wrappedCallback);
+          }
           item = RollbarNotifier.items.shift();
         }
       } catch (exc) {
@@ -627,8 +747,8 @@
                   
                   if (request.status === 200) {
                     itemCallback(null);
-                  } else if (typeof(request.status) === "number"
-                             && request.status >= 400  && request.status < 600) {
+                  } else if (typeof(request.status) === "number" &&
+                      request.status >= 400  && request.status < 600) {
                     //return valid http status codes
                     itemCallback(new Error(request.status.toString()));
                   } else {
@@ -669,7 +789,7 @@
               
               var onload = function(args) {
                 if (itemCallback) {
-                  itemCallback();
+                  itemCallback(null);
                 }
               };
             
@@ -717,47 +837,102 @@
             }
           },
           server: {},
-          notifier: {name: 'rollbar-browser-js', version: '0.9.6'}
+          notifier: {name: 'rollbar-browser-js', version: '0.10.11'}
         }
       };
-      var k;
-      var i;
-      var value;
-      var path;
-      var target;
+
+      RollbarNotifier.mergeObjects(payload.data, RollbarNotifier.extraParams);
 
       // grab body, any other params set
+      var k;
       for (k in item) {
         if (item.hasOwnProperty(k)) {
           payload.data[k] = item[k];
         }
       }
 
-      // merge in user-supplied params
-      var extraParams = RollbarNotifier.extraParams;
-      for (k in extraParams) {
-        if (extraParams.hasOwnProperty(k)) {
-          value = extraParams[k];
-          path = k.split(".");
-          
-          // traverse the path to second-to-last elem
-          target = payload.data;
-          for (i = 0; i < path.length - 1; i++) {
-            target = target[path[i]];
-          }
-
-          // now save
-          target[path[path.length - 1]] = value;
-        }
-      }
+      RollbarNotifier.scrubObj(payload);
 
       return RollbarNotifier.stringify(payload);
+    },
+
+    scrubObj: function(obj) {
+      var traverse = function(o, func) {
+        var k;
+        var v;
+        for (k in o) {
+          if (o.hasOwnProperty(k)) {
+            v = o[k];
+            if (v !== null && typeof(v) === 'object') {
+              traverse(v, func);
+            } else {
+              o[k] = func.apply(this, [k, v]);
+            }
+          }
+        }
+      };
+
+      var redactVal = function(val) {
+        val = String(val);
+        return new Array(val.length + 1).join('*');
+      };
+
+      var redactQueryParam = function(match, paramPart, dummy1,
+          dummy2, dummy3, valPart, offset, string) {
+        return paramPart + redactVal(valPart);
+      };
+
+      var scrubFields = RollbarNotifier.scrubFields;
+      var queryRes = RollbarNotifier.scrubQueryParamRes;
+      var paramRes = RollbarNotifier.scrubParamRes;
+      var paramScrubber = function(v) {
+        var i;
+        if (typeof(v) === 'string') {
+          for (i = 0; i < queryRes.length; ++i) {
+            v = v.replace(queryRes[i], redactQueryParam);
+          }
+        }
+        return v;
+      };
+
+      var valScrubber = function(k, v) {
+        var i;
+        for (i = 0; i < paramRes.length; ++i) {
+          if (paramRes[i].test(k)) {
+            v = redactVal(v);
+            break;
+          }
+        }
+        return v;
+      };
+
+      var scrubber = function(k, v) {
+        var tmpV = valScrubber(k, v);
+        if (tmpV === v) {
+          return paramScrubber(tmpV);
+        } else {
+          return tmpV;
+        }
+      };
+
+      traverse(obj, scrubber);
     },
 
     printInternalError: function(exc) {
       if (RollbarNotifier.logger) {
         RollbarNotifier.logger('Internal rollbar error: ' + exc);
       }
+    },
+
+    // from http://stackoverflow.com/a/8809472/1138191
+    uuid4: function() {
+      var d = new Date().getTime();
+      var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = (d + Math.random()*16)%16 | 0;
+        d = Math.floor(d/16);
+        return (c=='x' ? r : (r&0x7|0x8)).toString(16);
+      });
+      return uuid;
     }
     
   };
@@ -794,6 +969,11 @@
       err = preSetupErrors.shift();
     }
   }
+  
+  // Export `RollbarNotifier` to window
+  // (Used for embedded implemetations and other instances where 
+  // the library is loaded before `_rollbar` is setup)
+  window.RollbarNotifier = RollbarNotifier;
 
   /*** END rollbar.js ***/
 

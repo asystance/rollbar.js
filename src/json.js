@@ -1,0 +1,2 @@
+var RollbarJSON = {};
+setupCustomJSON(RollbarJSON);
